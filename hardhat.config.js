@@ -17,8 +17,13 @@ module.exports = {
           },
         },
       },
-    defaultNetwork: "localnet",
+    defaultNetwork: "hardhat",
     networks: {
+        hardhat: {
+            // For in-memory testing, set the blockGasLimit to a high value
+            // so that you don't run into gas limit errors.
+            blockGasLimit: 100000000,
+        },
         localnet: {
             chainId: 31415926,
             url: "http://127.0.0.1:1234/rpc/v1",

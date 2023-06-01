@@ -21,12 +21,12 @@ There is an example contract in `contracts` that has the event and a method you 
 
 ## Running the daemon
 
-You need to specify the RPC endpoint of a Filecoin node, the Edge-UR API address, and the contract address, e.g:
+You need to specify the RPC endpoint of a Filecoin node, the Edge-UR API address, and the contract address, in the `.env` file, then start the daemon with:
 
-1. `node fdt-deal-monitor-ethers.js http://127.0.0.1:1234/rpc/v1 http://hack.edge.estuary.tech/fetch-pin 0x3f6748D2e66b4634Cc9b570f0Ac8b89AED963b21`
+1. `node fdt-deal-monitor-ethers.js`
 
 ## Invoking the contract
 
 You can call the contract to get it to pass an existing CID to the Edge-UR instance to store:
 
-1. `yarn hardhat store-data --contract 0x3f6748D2e66b4634Cc9b570f0Ac8b89AED963b21 --uri ipfs://bafyreif6mobjvnauxc3bglezw62etjrpbka2tdv7xuu4bblqjp47we7xxy`
+1. `yarn hardhat store-data --contract 0x3f6748D2e66b4634Cc9b570f0Ac8b89AED963b21 --uri https://bafybeie4og2w7u6c5sq5sfeajrnohqvs6i4fjjqruayopr2xbmapahrn5i.ipfs.dweb.link/dataverse_logo.png`

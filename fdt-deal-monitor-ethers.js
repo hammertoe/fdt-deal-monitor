@@ -1,7 +1,7 @@
 const FormData = require('form-data');
 const axios = require('axios');
 const { ethers } = require('hardhat');
-
+const db = require('diskdb');
 require('dotenv').config();
 
 
@@ -9,26 +9,27 @@ async function main() {
 
   // Get args
   const rpcEndpoint = process.env.rpcEndpoint;
-  const apiEndpoint = process.env.apiEndpoint + "/content/add";
+  const apiEndpoint = process.env.apiEndpoint + "/content/fetch-url";
   const contractAddress = process.env.contractAddress;
   const API_KEY = process.env.API_KEY;
 
+  // Open the database
+  db.connect('db', ['storage']);
+
   // Create a new ethers provider
   const provider = new ethers.providers.JsonRpcProvider(rpcEndpoint);
+  const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, ethers.provider)
 
   // Compile the contract
   const contractName = 'EdgeURContract';
-  
-  const contractFactory = await ethers.getContractFactory(contractName);
+  const contractFactory = await ethers.getContractFactory(contractName, wallet);
   const contract = await contractFactory.attach(contractAddress)
 
-  console.log("Listening for events on contract at address:", contractAddress);
+  console.log(`Listening for events on contract at address: ${contractAddress} at RPC endpoint: ${rpcEndpoint}`);
   const contractABI = contract.interface.abi;
 
   // Specify the event name you want to listen to
   const eventName = 'StoreURIEvent(string)';
-
-  // Specify the HTTP API endpoint and the POST request payload
 
   // Create an event filter
   const eventFilter = {
@@ -44,24 +45,12 @@ async function main() {
       log.data
     );
 
-    const uri = event[0];
-    let data;
-
-    // Fetch the data from the supplied URI
-    try {
-      console.log(`Fetching data from: ${uri}`)
-      response = await axios.get(uri, {
-        responseType: 'stream',
-      });
-      data = response.data;
-      console.log(`Success, fetched ${response.headers["content-length"]} bytes`)
-    } catch (error) {
-      console.error('Data fetch failed:', error.response);
-      return null;
-    };
-    
+    // New form object
     const formData = new FormData();
-    formData.append('data', data);
+
+    // Construct the form data payload
+    const uri = event[0];
+    formData.append('data_url', uri);
 
     const postHeaders = {
       headers: {
@@ -73,12 +62,33 @@ async function main() {
     console.log("Sending payload to: ", apiEndpoint);
 
     // Make the HTTP API POST request with the event data
+    let retData;
     try {
       const response = await axios.post(apiEndpoint, formData, postHeaders);
-      console.log('API response:', response.data);
+      retData = response.data
+      console.log('API response:', retData);
     } catch (error) {
       console.error('API request failed:', error.message);
+      return null;
     }
+
+    // Store the data a local database
+    let contents;
+    try {
+      console.log("Storing data locally")
+      contents = retData.contents[0];
+      db.storage.save(contents);
+      console.log(`Success stored id ${contents.ID}`);
+    } catch (error) {
+      console.error('Local storage failed:', error.message);
+      return null;
+    }
+
+    // Update smart contract
+    console.log("Updating smart contract");
+    transaction = await contract.updateJobId(uri, contents.ID, contents.cid)
+    transactionReceipt = await transaction.wait()
+    console.log("Complete!", transactionReceipt)
   };
 
   // Subscribe to the event

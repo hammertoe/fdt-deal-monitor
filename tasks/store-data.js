@@ -21,9 +21,9 @@ task(
         //create a EdgeURContract contract instance 
         //this is what you will call to interact with the deployed contract
         const edgeURContract = await EdgeURContract.attach(contractAddr)
-        
+
         //send a transaction to call makeDealProposal() method
-        transaction = await edgeURContract.StoreURI(uri)
+        transaction = await edgeURContract.storeURI(uri)
         transactionReceipt = await transaction.wait()
 
         //listen for DealProposalCreate event

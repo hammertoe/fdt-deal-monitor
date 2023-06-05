@@ -79,6 +79,8 @@ async function main() {
       contents = retData.contents[0];
       db.storage.save(contents);
       console.log(`Success stored id ${contents.ID}`);
+      console.log("Download:", `https://hackfs-coeus.estuary.tech/edge/gw/${contents.cid}`)
+      console.log("Status:", `https://hackfs-coeus.estuary.tech/edge/open/status/content/${contents.ID}`)
     } catch (error) {
       console.error('Local storage failed:', error.message);
       return null;
